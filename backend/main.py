@@ -25,4 +25,7 @@ async def ask_question(query: str):
             params={"query": query},
             timeout=30.0
         )
-    return {"answer": response.json()}
+    try:
+        return {"answer": response.json()}
+    except Exception:
+        return {"answer": {"output": response.text or "n8n returned empty response"}}
