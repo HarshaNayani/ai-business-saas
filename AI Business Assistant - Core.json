@@ -1,0 +1,177 @@
+{
+  "name": "AI Business Assistant - Core",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "ff08d4f8-072d-41e6-8c9b-fa5bdf902e6b",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "3c93efec-4b80-4510-9a65-8cf8ef92e3d5",
+      "name": "Webhook",
+      "webhookId": "ff08d4f8-072d-41e6-8c9b-fa5bdf902e6b"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a helpful AI assistant with internet access.\nALWAYS use search tool first before answering.\nNEVER answer from training data.\n\nResponse rules:\n- If user asks for \"points\" or \"list\" → give numbered list\n- If user asks simple question → give 2-3 line answer\n- If user asks for \"detailed\" or \"explain\" → give detailed answer\n- No unnecessary emojis or markdown headers\n- Always search web for current information\n\nUser question: {{ $('Webhook').item.json.query.query }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "ed9f9c74-80fa-48c4-87f4-278e579bb2d7",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Search the web for current and accurate information\n\nWhen answering questions:\n- Give a clean, direct answer only\n- No raw data, no URLs, no extra info\n- 2-3 lines maximum\n- Sound like a human assistant",
+        "query": "={{ $('Webhook').item.json.query.query }}",
+        "options": {}
+      },
+      "type": "@tavily/n8n-nodes-tavily.tavilyTool",
+      "typeVersion": 1,
+      "position": [
+        384,
+        208
+      ],
+      "id": "75905ee8-d7a4-4f62-9d7b-79ff605b13ec",
+      "name": "Search in Tavily",
+      "credentials": {
+        "tavilyApi": {
+          "id": "28tSXawD16CEmVkX",
+          "name": "Tavily account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        592,
+        0
+      ],
+      "id": "24f08d27-6588-4046-a831-1245c7d0716f",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Webhook').item.json.query.sessionId ?? \"default-session\" }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        240,
+        208
+      ],
+      "id": "5d49caca-0830-4b8c-88fb-f43f55da55c2",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        96,
+        208
+      ],
+      "id": "ca0216ff-c180-42d5-8898-efc0d2c7961b",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "FVFrNxSc553DQEYu",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search in Tavily": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "ef6f148e-d1de-432b-9ae0-3f878bf3bc47",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "98c616893f29b2d56a861e8b2584bad278f8042ecd40cc6c7c614186b6b9039d"
+  },
+  "nodeGroups": [],
+  "id": "yEVCa84NyQlsevpO",
+  "tags": []
+}
